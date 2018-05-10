@@ -7,5 +7,5 @@ function [rezultat] = model_matematyczny_sir(t, arg,lambda,beta)
 % uk³ad równañ ró¿niczkowych (4.65)
 rezultat(1) = -beta*arg(1)*arg(2);
 rezultat(2) = beta*arg(1)*arg(2) - lambda*arg(2);
-rezultat = rezultat'
+rezultat = rezultat';
 

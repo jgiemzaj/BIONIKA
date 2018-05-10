@@ -5,5 +5,4 @@ r=(2*(gamma*c)) /((arg(1)+arg(2))^2)
 rezultat(1) = -r*arg(1)*arg(2);
 rezultat(2) = r*arg(1)*arg(2);
 
-
 rezultat = rezultat'

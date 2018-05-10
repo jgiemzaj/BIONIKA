@@ -1,11 +1,13 @@
-function varargout = model_SIRS_GUI(varargin)
+function varargout = model_SIS_GUI(varargin)
+
+% Last Modified by GUIDE v2.5 23-Apr-2018 15:19:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @model_SIRS_GUI_OpeningFcn, ...
-                   'gui_OutputFcn',  @model_SIRS_GUI_OutputFcn, ...
+                   'gui_OpeningFcn', @model_SIS_GUI_OpeningFcn, ...
+                   'gui_OutputFcn',  @model_SIS_GUI_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -20,34 +22,33 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before model_SIRS_GUI is made visible.
-function model_SIRS_GUI_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before model_SIS_GUI is made visible.
+function model_SIS_GUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to model_SIRS_GUI (see VARARGIN)
+% varargin   command line arguments to model_SIS_GUI (see VARARGIN)
 
-% Choose default command line output for model_SIRS_GUI
+% Choose default command line output for model_SIS_GUI
 handles.output = hObject;
 
 % Update handles structure
 guidata(hObject, handles);
 global S0
 global I0
-global R0
 global alfa
 global beta
-global lambda
+global gamma
 global tmax
 
 
-% UIWAIT makes model_SIRS_GUI wait for user response (see UIRESUME)
+% UIWAIT makes model_SIS_GUI wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = model_SIRS_GUI_OutputFcn(hObject, eventdata, handles) 
+function varargout = model_SIS_GUI_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -102,10 +103,16 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+
+
 function SIR_I0_Callback(hObject, eventdata, handles)
 % hObject    handle to SIR_I0 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of SIR_I0 as text
+%        str2double(get(hObject,'String')) returns contents of SIR_I0 as a double
+
 
 % --- Executes during object creation, after setting all properties.
 function SIR_I0_CreateFcn(hObject, eventdata, handles)
@@ -119,6 +126,8 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+
+
 function SIR_d_Callback(hObject, eventdata, handles)
 % hObject    handle to SIR_d (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -126,6 +135,7 @@ function SIR_d_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of SIR_d as text
 %        str2double(get(hObject,'String')) returns contents of SIR_d as a double
+
 
 % --- Executes during object creation, after setting all properties.
 function SIR_d_CreateFcn(hObject, eventdata, handles)
@@ -328,72 +338,58 @@ end
 function button_symuluj_Callback(hObject, eventdata, handles)
 global S0
 global I0
-global R0
 global alfa
 global beta
-global lambda
+global gamma
 global tmax
 
-S0=str2double(get(handles.SIR_S0,'String'));
-I0=str2double(get(handles.SIR_I0,'String'));
-R0=str2double(get(handles.SIRS_R0,'String'));
-alfa=str2double(get(handles.SIS_alfa,'String'));
-beta=str2double(get(handles.SIR_beta,'String'));
-lambda=str2double(get(handles.SIRS_lambda,'String'));
+I0=get(handles.sliderSI,'value');
+% S0=str2double(get(handles.SIR_S0,'String'));
+S0=1-I0;
+
+alfa=get(handles.sliderAlfa,'value');
+beta=get(handles.sliderBeta,'value');
+gamma=get(handles.sliderGamma,'value');
+
+% alfa=str2double(get(handles.SIS_alfa,'String'));
+% beta=str2double(get(handles.SIR_beta,'String'));
+% gamma=str2double(get(handles.SIS_gamma,'String'));
 tmax=str2double(get(handles.SIR_tmax,'String'))
+h = 0.1; % krok ró¿niczkowania
+[wektor_czasu, osobniki_zainfekowane] = ...
+ode45(@model_matematyczny_sis, [0, tmax], I0, h,alfa,beta,gamma);
+% Wyznaczenie liczby osobników podatnych
+osobniki_podatne = 1 - osobniki_zainfekowane;
 
-% Dane wejœciowe modelu:
-% t0 = 0; % czas pocz¹tkowy symulacji
-% tk = 20; % czas koñcowy symulacji
- h = 0.5; % krok ró¿niczkowania (pocz¹tkowy)
-% S0 = 0.6; % proporcja osobników podatnych w t0
-% I0 = 0.4; % proporcja osobników zainfekowanych w t0
-% R0 = 0.0; % proporcja osobników uodpornionych w t0
-% Rozwi¹zanie równania ró¿niczkowego metod¹ przybli¿on¹ 
-% Dormand-Prince
-[wektor_czasu, rezultat] = ode45(@model_matematyczny_sirs, [0, tmax], [S0, I0, R0],alfa,beta,lambda, h);
-% wyznaczenie proporcji osobników podatnych,
-% zainfekowanych i uodpornionych
-osobniki_podatne = rezultat(:, 1);
-osobniki_zainfekowane = rezultat(:, 2);
-osobniki_uodpornione = rezultat(:, 3);
-% przebiegi proporcji osobników podatnych,
-% zainfekowanych i uodpornionych w zale¿noœci od czasu
+% Przebiegi liczby osobników zainfekowanych i podatnych 
 axes(handles.SIR_show)
-plot(wektor_czasu, osobniki_podatne, 'r-');
+
+plot(wektor_czasu, osobniki_podatne, 'm-');
 hold on
-plot(wektor_czasu, osobniki_zainfekowane, 'b-'); 
-plot(wektor_czasu, osobniki_uodpornione, 'g-'); 
+plot(wektor_czasu, osobniki_zainfekowane, 'c--'); 
 hold off
-% ustawienie legendy, tytu³u, opisów osi oraz
+% Ustawienie legendy, tytu³u, opisów osi oraz
 % uwidocznienie siatki
-legend('Osobniki podatne', ...
-'Osobniki zainfekowane', 'Osobniki uodpornione');
-title(['Model epidemii SIRS (S_0 = 0.6,'...
-'I_0 = 0.4, R_0 = 0, \delta < 1)']);
-xlabel('Czas');
-ylabel('Proporcja populacji');
-grid on
+legend('Osobniki podatne', 'Osobniki zainfekowane');
+
+xlabel('Czas [tyg]'); ylabel('Proporcja populacji'); grid on
 
 
 
 
 
-
-
-
-function SIRS_lambda_Callback(hObject, eventdata, handles)
-% hObject    handle to SIRS_lambda (see GCBO)
+function SIS_gamma_Callback(hObject, eventdata, handles)
+% hObject    handle to SIS_gamma (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of SIRS_lambda as text
-%        str2double(get(hObject,'String')) returns contents of SIRS_lambda as a double
+% Hints: get(hObject,'String') returns contents of SIS_gamma as text
+%        str2double(get(hObject,'String')) returns contents of SIS_gamma as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function SIRS_lambda_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to SIRS_lambda (see GCBO)
+function SIS_gamma_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to SIS_gamma (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -404,24 +400,89 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-
-function SIRS_R0_Callback(hObject, eventdata, handles)
-% hObject    handle to SIRS_R0 (see GCBO)
+% --- Executes on slider movement.
+function sliderSI_Callback(hObject, eventdata, handles)
+% hObject    handle to sliderSI (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of SIRS_R0 as text
-%        str2double(get(hObject,'String')) returns contents of SIRS_R0 as a double
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
 
 % --- Executes during object creation, after setting all properties.
-function SIRS_R0_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to SIRS_R0 (see GCBO)
+function sliderSI_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sliderSI (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on slider movement.
+function sliderAlfa_Callback(hObject, eventdata, handles)
+% hObject    handle to sliderAlfa (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+
+% --- Executes during object creation, after setting all properties.
+function sliderAlfa_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sliderAlfa (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on slider movement.
+function sliderBeta_Callback(hObject, eventdata, handles)
+% hObject    handle to sliderBeta (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+
+% --- Executes during object creation, after setting all properties.
+function sliderBeta_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sliderBeta (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on slider movement.
+function sliderGamma_Callback(hObject, eventdata, handles)
+% hObject    handle to sliderGamma (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+
+% --- Executes during object creation, after setting all properties.
+function sliderGamma_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to sliderGamma (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
 end

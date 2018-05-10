@@ -1,6 +1,6 @@
 function varargout = model_SI_GUI(varargin)
 
-% Last Modified by GUIDE v2.5 16-Apr-2018 18:56:49
+% Last Modified by GUIDE v2.5 10-May-2018 18:47:06
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -341,8 +341,8 @@ global c
 global gamma
 global tmax
 
-S0=str2double(get(handles.SIR_S0,'String'));
-I0=str2double(get(handles.SIR_I0,'String'));
+S0=get(handles.slider_SI,'value');
+I0=abs(1-S0);
 
 
 gamma=str2double(get(handles.SI_gamma,'String'));
@@ -444,4 +444,26 @@ function gamma_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on slider movement.
+function slider_SI_Callback(hObject, eventdata, handles)
+% hObject    handle to slider_SI (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+
+% --- Executes during object creation, after setting all properties.
+function slider_SI_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to slider_SI (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
